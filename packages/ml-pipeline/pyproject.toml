@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contribhub-ml"
+version = "0.1.0"
+description = "AI-powered GitHub issue triage and contributor matching pipeline"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "ContribHub Team" },
+]
+
+dependencies = [
+    "transformers>=4.36.0",
+    "sentence-transformers>=2.3.0",
+    "setfit>=1.0.0",
+    "torch>=2.1.0",
+    "openai>=1.12.0",
+    "anthropic>=0.18.0",
+    "numpy>=1.26.0",
+    "scikit-learn>=1.4.0",
+    "tree-sitter>=0.21.0",
+    "pyyaml>=6.0",
+    "httpx>=0.26.0",
+    "redis>=5.0.0",
+    "pgvector>=0.2.0",
+    "psycopg2-binary>=2.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "mypy>=1.8.0",
+    "ruff>=0.2.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["contribhub_ml*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
