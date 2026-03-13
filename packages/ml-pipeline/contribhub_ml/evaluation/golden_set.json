@@ -1,0 +1,185 @@
+{
+  "description": "Golden test set for IssueClassifier evaluation — 30 labelled examples.",
+  "examples": [
+    {
+      "title": "App crashes on login with SSO enabled",
+      "body": "When clicking 'Sign in with Google' the app immediately crashes with a segfault.\n\nStack trace:\n```\nSIGSEGV at 0x00000000\nauth_service.rs:142 — unwrap on None\n```\n\nThis started after the v2.4.0 release.",
+      "expected_category": "bug",
+      "expected_priority": "P0"
+    },
+    {
+      "title": "Memory leak in WebSocket connection handler",
+      "body": "After running the server for ~12 hours under load, RSS grows from 200MB to 4GB. Heap dump shows thousands of unreleased `WsConnection` objects.\n\nReproducible with `wrk -t4 -c1000 -d12h`.\n\nNode 20.11, Ubuntu 22.04.",
+      "expected_category": "bug",
+      "expected_priority": "P1"
+    },
+    {
+      "title": "TypeError: Cannot read properties of undefined (reading 'map')",
+      "body": "Getting this error when navigating to /dashboard after a fresh install.\n\n```\nTypeError: Cannot read properties of undefined (reading 'map')\n  at DashboardPage (dashboard.tsx:47)\n```\n\nHappens every time, blocking all dashboard functionality.",
+      "expected_category": "bug",
+      "expected_priority": "P1"
+    },
+    {
+      "title": "CSS grid layout breaks on Safari 16",
+      "body": "The main content grid overlaps the sidebar on Safari 16.x. Chrome and Firefox render correctly.\n\nScreenshot attached. Happens on both macOS and iOS Safari.",
+      "expected_category": "bug",
+      "expected_priority": "P2"
+    },
+    {
+      "title": "Wrong currency symbol displayed for Japanese Yen",
+      "body": "The pricing page shows '$' instead of '¥' when locale is set to ja-JP. The amount is correct, just the symbol is wrong.",
+      "expected_category": "bug",
+      "expected_priority": "P2"
+    },
+    {
+      "title": "Deprecation warning from Node.js crypto module",
+      "body": "Getting `DeprecationWarning: The crypto.createCipher is deprecated` when running tests. Not breaking anything yet, but we should migrate to `createCipheriv`.",
+      "expected_category": "bug",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "API response returns 500 when user profile is incomplete",
+      "body": "POST /api/users/profile returns HTTP 500 if the `bio` field is null. Should return 400 with a validation error.\n\nReproduction: create a user, skip onboarding, then call the profile endpoint.\n\nLogs show: `NullPointerException at UserSerializer.java:89`.",
+      "expected_category": "bug",
+      "expected_priority": "P1"
+    },
+    {
+      "title": "Race condition in batch processing causes duplicate records",
+      "body": "When two batch jobs run concurrently, some records get inserted twice. We see ~0.1% duplicate rate in production.\n\nThe upsert logic in `batch_processor.py` doesn't hold a transaction lock.",
+      "expected_category": "bug",
+      "expected_priority": "P1"
+    },
+    {
+      "title": "Typo in error message: 'Authenication failed'",
+      "body": "The login error message reads 'Authenication failed' instead of 'Authentication failed'. File: `src/auth/messages.ts` line 23.",
+      "expected_category": "bug",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "File upload silently fails for files over 10MB",
+      "body": "Uploading a 15MB PDF shows the spinner indefinitely. No error message is displayed. The network tab shows the request was rejected with 413. Need to surface the error and mention the size limit.",
+      "expected_category": "bug",
+      "expected_priority": "P2"
+    },
+    {
+      "title": "Add dark mode support",
+      "body": "It would be great to have a dark mode toggle in the settings. Many users work late and the bright theme is harsh on the eyes.\n\nSuggested approach:\n- Use CSS custom properties for theming\n- Store preference in localStorage\n- Respect `prefers-color-scheme` media query",
+      "expected_category": "feature",
+      "expected_priority": "P2"
+    },
+    {
+      "title": "Support exporting data to CSV",
+      "body": "As a data analyst, I need to export dashboard data to CSV for further processing in Excel. Currently I have to manually copy-paste tables.\n\nAcceptance criteria:\n- Export button on each table\n- Include all columns including hidden ones\n- Support date range filtering",
+      "expected_category": "feature",
+      "expected_priority": "P2"
+    },
+    {
+      "title": "Add GitHub Actions integration for automated deployments",
+      "body": "We should add a GitHub Actions workflow that automatically deploys to staging on PR merge and to production on release tag.\n\nComponents needed:\n- `.github/workflows/deploy.yml`\n- Environment-specific configs\n- Slack notification on deploy status",
+      "expected_category": "feature",
+      "expected_priority": "P2"
+    },
+    {
+      "title": "Implement real-time notifications via WebSocket",
+      "body": "Users currently need to refresh the page to see new notifications. We should implement WebSocket-based real-time push notifications.\n\nScope:\n- New notification types: mention, assignment, review request\n- Bell icon with unread count badge\n- Desktop notification permission prompt",
+      "expected_category": "feature",
+      "expected_priority": "P2"
+    },
+    {
+      "title": "Add multi-language support (i18n)",
+      "body": "We have users in 15+ countries. Need to internationalise the UI.\n\nProposed languages for v1: English, Spanish, French, German, Japanese, Chinese (Simplified).\n\nStack: react-intl or next-intl. All strings extracted to JSON locale files.",
+      "expected_category": "feature",
+      "expected_priority": "P2"
+    },
+    {
+      "title": "Allow custom webhook URLs for event notifications",
+      "body": "Enterprise customers want to receive event webhooks at their own endpoints. Need a settings page where they can configure webhook URLs, select event types, and view delivery logs.",
+      "expected_category": "feature",
+      "expected_priority": "P2"
+    },
+    {
+      "title": "Support OAuth2 PKCE flow for mobile apps",
+      "body": "Our mobile SDK currently uses the implicit flow which is deprecated. Need to implement PKCE (Proof Key for Code Exchange) as recommended by OAuth 2.1.\n\nRef: RFC 7636.",
+      "expected_category": "feature",
+      "expected_priority": "P1"
+    },
+    {
+      "title": "Add keyboard shortcuts for power users",
+      "body": "It'd be nice to have vim-like keyboard shortcuts:\n- `j`/`k` to navigate lists\n- `Enter` to open\n- `/` to focus search\n- `Esc` to close modals\n\nShould be toggleable in settings.",
+      "expected_category": "feature",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "How do I configure rate limiting?",
+      "body": "I'm trying to set up rate limiting for our API but I can't find any documentation on how to do it. Is there a built-in middleware or do I need to use a third-party library?\n\nWe're running v3.2.0 on Express.",
+      "expected_category": "question",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "What is the recommended database for production?",
+      "body": "The README mentions SQLite for development. What database should we use for a production deployment serving ~10k users? PostgreSQL? MySQL? Does the ORM support both seamlessly?",
+      "expected_category": "question",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "Is it possible to self-host this project?",
+      "body": "We're evaluating this tool for internal use. Can it be self-hosted on our own infrastructure? What are the system requirements? Is there a Docker Compose setup?\n\nAlso, does the license permit commercial self-hosting?",
+      "expected_category": "question",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "Difference between 'workspace' and 'organisation'?",
+      "body": "I'm confused about the workspace vs organisation concepts. The docs mention both but don't clearly explain when to use which. Can someone clarify the intended hierarchy?",
+      "expected_category": "question",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "Can I use this with Deno instead of Node.js?",
+      "body": "Has anyone tried running this project under Deno? I see it's built with TypeScript so theoretically it should work. Any compatibility issues I should know about?",
+      "expected_category": "question",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "Add API reference documentation",
+      "body": "The current docs cover getting started but lack a comprehensive API reference. Each endpoint should document:\n- Method and path\n- Request/response schemas\n- Authentication requirements\n- Example curl commands\n\nConsider using OpenAPI/Swagger.",
+      "expected_category": "docs",
+      "expected_priority": "P2"
+    },
+    {
+      "title": "Fix broken links in the contribution guide",
+      "body": "Several links in CONTRIBUTING.md are broken:\n- Line 34: link to code style guide returns 404\n- Line 58: link to issue templates points to old repo\n- Line 72: link to Discord invite has expired",
+      "expected_category": "docs",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "Add architecture decision records (ADRs)",
+      "body": "We should start documenting significant architecture decisions using ADR format in `docs/adr/`. This helps new contributors understand why things are built a certain way.\n\nTemplate: https://adr.github.io/",
+      "expected_category": "docs",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "Improve onboarding tutorial with screenshots",
+      "body": "The getting-started guide is text-heavy and hard to follow. Adding annotated screenshots for each step would dramatically improve the new-user experience.\n\nKey sections needing visuals:\n1. Installation wizard\n2. First project setup\n3. Dashboard overview",
+      "expected_category": "docs",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "Upgrade ESLint to v9 flat config",
+      "body": "ESLint v9 deprecates `.eslintrc` in favour of flat config (`eslint.config.js`). We should migrate before the next major release.\n\nSteps:\n1. Convert `.eslintrc.json` to `eslint.config.mjs`\n2. Update all eslint plugins to flat-config-compatible versions\n3. Remove `eslintIgnore` from package.json",
+      "expected_category": "chore",
+      "expected_priority": "P3"
+    },
+    {
+      "title": "Pin dependency versions in CI",
+      "body": "Our CI is flaky because dependencies float to latest patch versions. We should:\n- Use exact versions in package.json (remove ^ and ~)\n- Add a lockfile integrity check step\n- Set up Renovate for automated updates",
+      "expected_category": "chore",
+      "expected_priority": "P2"
+    },
+    {
+      "title": "Remove unused legacy authentication module",
+      "body": "The `src/auth/legacy/` directory contains the old JWT auth that was replaced by the OAuth module in v2.0. It's dead code with no imports. Removing it will reduce bundle size by ~15KB and eliminate a confusing code path for new contributors.",
+      "expected_category": "chore",
+      "expected_priority": "P3"
+    }
+  ]
+}
