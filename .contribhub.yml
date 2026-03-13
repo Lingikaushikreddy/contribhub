@@ -1,0 +1,95 @@
+# =============================================================================
+# .contribhub.yml — ContribHub Repository Configuration
+# =============================================================================
+#
+# This file configures how ContribHub triages issues, matches contributors,
+# and interacts with your repository. Place it in your repository root.
+#
+# All values shown below are the defaults. You only need to specify values
+# you want to override.
+#
+# Documentation: https://contribhub.dev/docs/configuration
+# =============================================================================
+
+# Schema version — must be 1
+version: 1
+
+# -----------------------------------------------------------------------------
+# Triage — AI-powered issue classification and response drafting
+# -----------------------------------------------------------------------------
+triage:
+  # Master switch for the triage engine. Set to false to disable all
+  # automatic issue processing for this repository.
+  enabled: true
+
+  # Label sets that the triage engine will apply to issues.
+  # You can customize these to match your project's labeling convention.
+  labels:
+    # Issue type categories. The classifier maps each issue to one of these.
+    categories:
+      - bug
+      - feature
+      - enhancement
+      - documentation
+      - question
+      - chore
+
+    # Priority levels applied based on severity/impact analysis.
+    priorities:
+      - critical
+      - high
+      - medium
+      - low
+
+    # Complexity ratings to help contributors find appropriately scoped work.
+    complexity:
+      - trivial
+      - easy
+      - moderate
+      - hard
+      - expert
+
+  # Minimum confidence (0.0 - 1.0) required before the engine will
+  # automatically apply labels. Issues below this threshold are left
+  # unlabeled for manual review.
+  auto_label_confidence_threshold: 0.75
+
+  # Duplicate detection — uses embedding similarity to find potential duplicates.
+  duplicate_detection:
+    enabled: true
+    # Cosine similarity threshold (0.0 - 1.0). Higher values require
+    # closer matches to be flagged as duplicates.
+    similarity_threshold: 0.85
+
+  # Response drafts — AI-generated responses posted as comments.
+  response_drafts:
+    enabled: true
+    # Tone for generated responses: "formal", "friendly", or "minimal".
+    tone: friendly
+    # When true, automatically posts a comment asking for more info
+    # if the issue body is too vague to classify.
+    auto_post_quality_requests: false
+
+  # Issues with any of these labels will be skipped by the triage engine.
+  excluded_labels:
+    - wontfix
+    - invalid
+    - duplicate
+
+  # GitHub usernames whose issues bypass confidence thresholds and
+  # are auto-labeled regardless of classification confidence.
+  trusted_reporters: []
+
+# -----------------------------------------------------------------------------
+# Matching — Contributor-to-issue recommendation engine
+# -----------------------------------------------------------------------------
+matching:
+  # Master switch for the matching engine.
+  enabled: true
+
+  # Skip contributors who have not been active on GitHub in this many days.
+  exclude_dormant_days: 90
+
+  # When true, issues that already have an assignee are excluded from
+  # the matching pool.
+  exclude_claimed_issues: true
