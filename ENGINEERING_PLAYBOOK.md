@@ -30,25 +30,26 @@
                               |
                      ┌────────┴────────┐
                      │                 │
-              Aravind K.          Meera S.
-         CTO / Tech Lead       Head of AI/ML
-        (Architecture,         (ML pipeline,
-         code review,           models, evals)
-         sprint planning)            |
+                Joel              Kaushik Reddy
+         CTO / Tech Lead       Head of AI/ML &
+        (Architecture,          Sr. Full-Stack
+         code review,          (ML pipeline, models,
+         sprint planning)       evals, triage UI)
               |                      |
-     ┌────────┼────────┐        Rajan P.
+     ┌────────┼────────┐        Fardeen
      │        │        │      ML Engineer
-  Vikram D.  Neha R.  Karthik M.  (Data, evals,
-  Sr. Full-  Sr. Full- Sr. Backend  fine-tuning)
-  Stack #1   Stack #2  / Infra
-  (Triage)   (Matching) (Platform)
+  Kishore   Harshavardhan      (Data, evals,
+  Reddy      Reddy              fine-tuning)
+  Sr. Full-  Sr. Backend
+  Stack      / Infra
+  (Matching) (Platform)
 ```
 
 ### Role Definitions
 
 ---
 
-### Role 1: CTO / Tech Lead — Aravind K.
+### Role 1: CTO / Tech Lead — Joel
 
 **Profile:** 8+ years full-stack, prior startup CTO experience, strong in system design and API architecture. Writes 50%+ of early codebase.
 
@@ -67,9 +68,9 @@
 
 ---
 
-### Role 2: Head of AI/ML — Meera S.
+### Role 2: Head of AI/ML & Sr. Full-Stack — Kaushik Reddy
 
-**Profile:** 6+ years ML/NLP, experience with transformer fine-tuning, production ML systems, and LLM integration. Published research or significant OSS contributions in NLP.
+**Profile:** 6+ years ML/NLP + full-stack engineering, experience with transformer fine-tuning, production ML systems, LLM integration, and end-to-end feature delivery. Dual role covering both AI pipeline and maintainer-facing triage UI.
 
 **Owns:**
 - Issue classification model (SetFit → DeBERTa fine-tuning pipeline)
@@ -78,18 +79,23 @@
 - Model evaluation framework and golden datasets
 - ML cost optimization (model routing, caching)
 - Drift monitoring setup (Evidently AI)
+- Maintainer-facing features end-to-end (GitHub App UI, triage dashboard, response approval flow)
+- `.contribhub.yml` configuration parser and validation
+- Maintainer notification system (email digests, GitHub comments)
 
 **Key Metrics:**
 - Auto-label accuracy: >88% within Sprint 2, >92% by Sprint 4
 - Duplicate detection F1: >85%
 - LLM cost per issue triage: <$0.025
 - Response draft quality: >80% maintainer acceptance rate
+- GitHub App installation: <2 minutes, <3 clicks
+- Dashboard load time: <1.5 seconds (LCP)
 
 ---
 
-### Role 3: ML Engineer — Rajan P.
+### Role 3: ML Engineer — Fardeen
 
-**Profile:** 3-5 years ML engineering, strong Python, experience with data pipelines, model evaluation, and GitHub API. Reports to Meera S.
+**Profile:** 3-5 years ML engineering, strong Python, experience with data pipelines, model evaluation, and GitHub API. Reports to Kaushik Reddy.
 
 **Owns:**
 - Training data collection and synthetic data generation
@@ -107,27 +113,7 @@
 
 ---
 
-### Role 4: Sr. Full-Stack Engineer #1 (Triage) — Vikram D.
-
-**Profile:** 5+ years TypeScript/React/Next.js, experience with GitHub integrations and real-time systems. Strong frontend with solid backend skills.
-
-**Owns:**
-- Maintainer-facing features end-to-end
-- GitHub App UI (installation flow, permissions, OAuth)
-- `.contribhub.yml` configuration parser and validation
-- Triage dashboard (analytics, charts, label accuracy feedback)
-- Maintainer notification system (email digests, GitHub comments)
-- Response draft approval workflow (maintainer reviews AI drafts)
-
-**Key Metrics:**
-- GitHub App installation: <2 minutes, <3 clicks
-- Dashboard load time: <1.5 seconds (LCP)
-- Config changes take effect: <30 seconds
-- Email digest delivery: 99.5% reliability
-
----
-
-### Role 5: Sr. Full-Stack Engineer #2 (Matching) — Neha R.
+### Role 4: Sr. Full-Stack Engineer (Matching) — Kishore Reddy
 
 **Profile:** 5+ years TypeScript/React/Next.js, experience with recommendation systems or marketplace products. Strong UX sensibility.
 
@@ -148,7 +134,7 @@
 
 ---
 
-### Role 6: Sr. Backend / Infrastructure Engineer — Karthik M.
+### Role 5: Sr. Backend / Infrastructure Engineer — Harshavardhan Reddy
 
 **Profile:** 6+ years backend (Python/Node.js), deep expertise in distributed systems, databases, CI/CD, and cloud infrastructure. DevOps generalist.
 
@@ -239,16 +225,16 @@ main (always deployable)
 
 | Task ID | Task | Size | Assignee | Dependencies | Best Practice |
 |---|---|---|---|---|---|
-| S1-01 | **Monorepo scaffold** — Set up Turborepo monorepo with `apps/web` (Next.js 15), `apps/api` (FastAPI), `packages/ml-pipeline`, `packages/shared` | M | Karthik M. | None | Turborepo for build caching; shared TypeScript types between frontend and API |
-| S1-02 | **PostgreSQL schema v1** — Design and implement core tables: `users`, `repos`, `issues`, `skills`, `user_skills`, `issue_skills`, `matches`, `triage_events` | M | Aravind K. | None | UUID PKs (v7 if Postgres 18), B-tree indexes on FKs, GIN index on jsonb columns. Use Alembic for migrations. |
-| S1-03 | **GitHub App registration + OAuth flow** — Register GitHub App, configure permissions (issues:read/write, PRs:read, contents:read, metadata:read), implement OAuth with Auth.js v5 | M | Vikram D. | None | Principle of least privilege — only request permissions you use today. Auth.js v5 auto-infers GitHub credentials. |
-| S1-04 | **Webhook gateway** — FastAPI endpoint that receives GitHub webhooks, verifies HMAC-SHA256 signature, deduplicates via `X-GitHub-Delivery` header, enqueues to BullMQ/Dramatiq | L | Karthik M. | S1-01 | Use constant-time comparison (`hmac.compare_digest`). Return 2xx within 10 seconds. Store delivery IDs in Redis (TTL 72h) for idempotency. |
-| S1-05 | **CI/CD pipeline** — GitHub Actions workflow: lint, type-check, test, build, deploy to Railway (API) + Vercel (web) | M | Karthik M. | S1-01 | Parallel jobs for lint/type-check/test. Cache `node_modules` and pip deps. Target <5 min total pipeline. |
-| S1-06 | **Next.js app shell** — Layout, navigation, GitHub OAuth login, dark mode, shadcn/ui setup, TanStack Query provider | M | Neha R. | S1-01, S1-03 | Server Components for layout, Client Components only for interactive widgets. shadcn/ui + Recharts for dashboard charts. |
-| S1-07 | **ML pipeline skeleton** — Python package structure, model loading/inference interfaces, pytest fixtures, MLflow experiment tracking setup | M | Meera S. | S1-01 | Separate `inference/`, `training/`, `evaluation/` modules. Mock LLM calls in tests. MLflow with Postgres backend. |
-| S1-08 | **Training data collection** — Script to pull issues from 50 popular OSS repos via GitHub GraphQL API, extract labels/categories, build initial labeled dataset (target: 5,000 issues) | L | Rajan P. | None | Use GraphQL `search` query with `is:issue` filters. Batch in pages of 100. Respect rate limits (5,000 points/hr). Store as Parquet files versioned with DVC. |
-| S1-09 | **Redis + message queue setup** — Redis instance on Railway, BullMQ workers for Python tasks via bridge, or Dramatiq with Redis broker | M | Karthik M. | S1-01 | BullMQ for Node.js tasks (notifications, config updates), Dramatiq for Python tasks (ML inference). Use separate queues per task type. |
-| S1-10 | **Monitoring bootstrap** — Sentry (errors), PostHog (analytics), Grafana Cloud (infra metrics) — basic setup across web + API | S | Karthik M. | S1-01, S1-05 | Use OpenTelemetry instrumentation to avoid vendor lock-in. PostHog free tier: 1M events/mo. Sentry free: 5K errors/mo. |
+| S1-01 | **Monorepo scaffold** — Set up Turborepo monorepo with `apps/web` (Next.js 15), `apps/api` (FastAPI), `packages/ml-pipeline`, `packages/shared` | M | Harshavardhan Reddy | None | Turborepo for build caching; shared TypeScript types between frontend and API |
+| S1-02 | **PostgreSQL schema v1** — Design and implement core tables: `users`, `repos`, `issues`, `skills`, `user_skills`, `issue_skills`, `matches`, `triage_events` | M | Joel | None | UUID PKs (v7 if Postgres 18), B-tree indexes on FKs, GIN index on jsonb columns. Use Alembic for migrations. |
+| S1-03 | **GitHub App registration + OAuth flow** — Register GitHub App, configure permissions (issues:read/write, PRs:read, contents:read, metadata:read), implement OAuth with Auth.js v5 | M | Kaushik Reddy | None | Principle of least privilege — only request permissions you use today. Auth.js v5 auto-infers GitHub credentials. |
+| S1-04 | **Webhook gateway** — FastAPI endpoint that receives GitHub webhooks, verifies HMAC-SHA256 signature, deduplicates via `X-GitHub-Delivery` header, enqueues to BullMQ/Dramatiq | L | Harshavardhan Reddy | S1-01 | Use constant-time comparison (`hmac.compare_digest`). Return 2xx within 10 seconds. Store delivery IDs in Redis (TTL 72h) for idempotency. |
+| S1-05 | **CI/CD pipeline** — GitHub Actions workflow: lint, type-check, test, build, deploy to Railway (API) + Vercel (web) | M | Harshavardhan Reddy | S1-01 | Parallel jobs for lint/type-check/test. Cache `node_modules` and pip deps. Target <5 min total pipeline. |
+| S1-06 | **Next.js app shell** — Layout, navigation, GitHub OAuth login, dark mode, shadcn/ui setup, TanStack Query provider | M | Kishore Reddy | S1-01, S1-03 | Server Components for layout, Client Components only for interactive widgets. shadcn/ui + Recharts for dashboard charts. |
+| S1-07 | **ML pipeline skeleton** — Python package structure, model loading/inference interfaces, pytest fixtures, MLflow experiment tracking setup | M | Kaushik Reddy | S1-01 | Separate `inference/`, `training/`, `evaluation/` modules. Mock LLM calls in tests. MLflow with Postgres backend. |
+| S1-08 | **Training data collection** — Script to pull issues from 50 popular OSS repos via GitHub GraphQL API, extract labels/categories, build initial labeled dataset (target: 5,000 issues) | L | Fardeen | None | Use GraphQL `search` query with `is:issue` filters. Batch in pages of 100. Respect rate limits (5,000 points/hr). Store as Parquet files versioned with DVC. |
+| S1-09 | **Redis + message queue setup** — Redis instance on Railway, BullMQ workers for Python tasks via bridge, or Dramatiq with Redis broker | M | Harshavardhan Reddy | S1-01 | BullMQ for Node.js tasks (notifications, config updates), Dramatiq for Python tasks (ML inference). Use separate queues per task type. |
+| S1-10 | **Monitoring bootstrap** — Sentry (errors), PostHog (analytics), Grafana Cloud (infra metrics) — basic setup across web + API | S | Harshavardhan Reddy | S1-01, S1-05 | Use OpenTelemetry instrumentation to avoid vendor lock-in. PostHog free tier: 1M events/mo. Sentry free: 5K errors/mo. |
 
 **Sprint 1 Deliverable:** A deployable skeleton where GitHub App can be installed on a test repo, webhook events are received and queued, and the web app shows a login page.
 
@@ -260,14 +246,14 @@ main (always deployable)
 
 | Task ID | Task | Size | Assignee | Dependencies | Best Practice |
 |---|---|---|---|---|---|
-| S2-01 | **Issue classifier v1** — Fine-tune SetFit + ModernBERT on collected dataset. Categories: `bug`, `feature`, `question`, `docs`, `chore`. Priority: `P0-P3`. Output confidence scores. | L | Meera S. | S1-08 | SetFit handles cold-start (few-shot). Use 80/10/10 train/val/test split. Track precision/recall per class. Target >88% accuracy. |
-| S2-02 | **Complexity scorer v1** — Tree-sitter AST analysis for affected files: cyclomatic complexity, cognitive complexity, nesting depth, file coupling from git co-change history | L | Rajan P. | S1-08 | Formula: `0.6 * cognitive + 0.25 * cyclomatic + 0.15 * coupling`. Map to 4 levels: beginner (1-2), intermediate (3-5), advanced (6-8), expert (9-10). Use lizard for multi-language analysis. |
-| S2-03 | **Embedding pipeline** — Embed all open issues using text-embedding-3-large (1024d), store in pgvector, similarity search endpoint | L | Rajan P. | S1-02, S1-09 | Start with pgvector (avoids new infra). Cosine similarity. Incremental: embed new issues on webhook, upsert into index. Threshold 0.85 for duplicates. |
-| S2-04 | **Duplicate detection worker** — On new issue: embed → query top-5 similar → if score >0.80, comment on issue with link; if >0.95, auto-label `possible-duplicate` | M | Meera S. | S2-03 | Never auto-close — only suggest. Include confidence score in comment. Let maintainer confirm/dismiss. Log all decisions for model improvement. |
-| S2-05 | **Label application worker** — On classifier output: apply labels via GitHub API, add confidence badge in comment, handle label creation if labels don't exist | M | Vikram D. | S2-01, S1-04 | Create labels with consistent colors on first run. Only apply labels above 70% confidence. Labels below threshold get `needs-review`. |
-| S2-06 | **Config file parser** — Parse `.contribhub.yml` from repo root: custom label taxonomy, tone, thresholds, excluded labels, trusted reporters | M | Vikram D. | S1-04 | Validate with JSON Schema / Pydantic. Fail gracefully with defaults if file missing or malformed. Cache parsed config in Redis (invalidate on push event). |
-| S2-07 | **Evaluation framework** — Golden test set (500 manually labeled issues), automated eval script, accuracy/precision/recall/F1 per category, CI integration | M | Rajan P. | S2-01 | Run evals on every ML code change. Track metrics in MLflow. Set deployment gate: new model must beat baseline on golden set. |
-| S2-08 | **Webhook event routing** — Route different GitHub events to appropriate workers: `issues.opened` → classifier + duplicate detector, `issues.edited` → re-classify, `push` → invalidate config cache | M | Karthik M. | S1-04, S1-09 | Use event type + action as routing key. Dead-letter queue for failed events. Retry with exponential backoff (3 attempts, 1s/5s/30s). |
+| S2-01 | **Issue classifier v1** — Fine-tune SetFit + ModernBERT on collected dataset. Categories: `bug`, `feature`, `question`, `docs`, `chore`. Priority: `P0-P3`. Output confidence scores. | L | Kaushik Reddy | S1-08 | SetFit handles cold-start (few-shot). Use 80/10/10 train/val/test split. Track precision/recall per class. Target >88% accuracy. |
+| S2-02 | **Complexity scorer v1** — Tree-sitter AST analysis for affected files: cyclomatic complexity, cognitive complexity, nesting depth, file coupling from git co-change history | L | Fardeen | S1-08 | Formula: `0.6 * cognitive + 0.25 * cyclomatic + 0.15 * coupling`. Map to 4 levels: beginner (1-2), intermediate (3-5), advanced (6-8), expert (9-10). Use lizard for multi-language analysis. |
+| S2-03 | **Embedding pipeline** — Embed all open issues using text-embedding-3-large (1024d), store in pgvector, similarity search endpoint | L | Fardeen | S1-02, S1-09 | Start with pgvector (avoids new infra). Cosine similarity. Incremental: embed new issues on webhook, upsert into index. Threshold 0.85 for duplicates. |
+| S2-04 | **Duplicate detection worker** — On new issue: embed → query top-5 similar → if score >0.80, comment on issue with link; if >0.95, auto-label `possible-duplicate` | M | Kaushik Reddy | S2-03 | Never auto-close — only suggest. Include confidence score in comment. Let maintainer confirm/dismiss. Log all decisions for model improvement. |
+| S2-05 | **Label application worker** — On classifier output: apply labels via GitHub API, add confidence badge in comment, handle label creation if labels don't exist | M | Kaushik Reddy | S2-01, S1-04 | Create labels with consistent colors on first run. Only apply labels above 70% confidence. Labels below threshold get `needs-review`. |
+| S2-06 | **Config file parser** — Parse `.contribhub.yml` from repo root: custom label taxonomy, tone, thresholds, excluded labels, trusted reporters | M | Kaushik Reddy | S1-04 | Validate with JSON Schema / Pydantic. Fail gracefully with defaults if file missing or malformed. Cache parsed config in Redis (invalidate on push event). |
+| S2-07 | **Evaluation framework** — Golden test set (500 manually labeled issues), automated eval script, accuracy/precision/recall/F1 per category, CI integration | M | Fardeen | S2-01 | Run evals on every ML code change. Track metrics in MLflow. Set deployment gate: new model must beat baseline on golden set. |
+| S2-08 | **Webhook event routing** — Route different GitHub events to appropriate workers: `issues.opened` → classifier + duplicate detector, `issues.edited` → re-classify, `push` → invalidate config cache | M | Harshavardhan Reddy | S1-04, S1-09 | Use event type + action as routing key. Dead-letter queue for failed events. Retry with exponential backoff (3 attempts, 1s/5s/30s). |
 
 **Sprint 2 Deliverable:** Install ContribHub on a test repo, create an issue, and see it auto-labeled within 30 seconds with category, priority, complexity, and duplicate check.
 
@@ -279,14 +265,14 @@ main (always deployable)
 
 | Task ID | Task | Size | Assignee | Dependencies | Best Practice |
 |---|---|---|---|---|---|
-| S3-01 | **RAG context builder** — Index repo docs (README, CONTRIBUTING.md, past maintainer responses, issue templates) per repo. Chunk by section, embed, store in pgvector. | L | Meera S. | S2-03 | Chunk at heading boundaries (H2/H3). Embed with same model as issues. Refresh on `push` events to default branch. Cap context to 4K tokens for LLM prompt. |
-| S3-02 | **Response drafter** — LLM generates response drafts grounded in RAG context. Templates: missing-info request, feature acknowledgment, question→docs redirect, duplicate link. | L | Meera S. | S3-01 | Use model routing: Claude Haiku for templated responses ($0.003), Claude Sonnet for complex issues ($0.02). Cache common responses in Redis (semantic cache). Never auto-post — draft only. |
-| S3-03 | **Maintainer approval flow** — Dashboard UI for reviewing/editing/approving AI-drafted responses before posting to GitHub | M | Vikram D. | S3-02, S1-06 | One-click approve, inline edit, discard with reason. Show response alongside original issue. Track approval/edit/discard rates as model quality metric. |
-| S3-04 | **Issue quality scorer** — Score each issue 0-100 on completeness: reproduction steps, environment info, error logs, screenshots, expected vs. actual | M | Rajan P. | S2-01 | Use a checklist approach: +20 for repro steps, +15 for environment, +15 for error logs, +10 for screenshots, +15 for expected/actual, +10 for version info, +15 for clear description. NLP entity extraction to detect presence. |
-| S3-05 | **Skill profile builder (backend)** — GitHub GraphQL queries to extract: languages used (weighted by LOC), repos contributed to, PR complexity, review activity. Map to 3-level skill taxonomy. | L | Rajan P. | S1-02 | Use `contributionsCollection` for efficient data pull. Hierarchical taxonomy: Domain → Technology → Specific (e.g., Backend → Python → FastAPI). Refresh profiles weekly via batch job. |
-| S3-06 | **Skill profile builder (frontend)** — Auto-generated profile with editable skills, interests selector, experience level self-declaration. Public profile page (opt-in). | M | Neha R. | S3-05, S1-06 | Show inferred skills with confidence. Let contributor override. Skill chips with proficiency levels. Clean, resume-linkable public profile URL. |
-| S3-07 | **Tone configuration** — Support 3 response tones (formal/friendly/minimal) per `.contribhub.yml`. Include 3-5 few-shot examples per tone in LLM prompt. | S | Meera S. | S3-02, S2-06 | Curate example responses for each tone from real OSS projects. Use system prompt for tone control + few-shot examples in user prompt. |
-| S3-08 | **Cost tracking dashboard** — Internal dashboard showing LLM API costs per repo, per day, per operation (classify/embed/draft). Alert if daily cost exceeds threshold. | S | Karthik M. | S3-02 | Log token usage per API call. Aggregate in PostgreSQL. Alert via Slack webhook if daily cost >$50. Display in admin dashboard. |
+| S3-01 | **RAG context builder** — Index repo docs (README, CONTRIBUTING.md, past maintainer responses, issue templates) per repo. Chunk by section, embed, store in pgvector. | L | Kaushik Reddy | S2-03 | Chunk at heading boundaries (H2/H3). Embed with same model as issues. Refresh on `push` events to default branch. Cap context to 4K tokens for LLM prompt. |
+| S3-02 | **Response drafter** — LLM generates response drafts grounded in RAG context. Templates: missing-info request, feature acknowledgment, question→docs redirect, duplicate link. | L | Kaushik Reddy | S3-01 | Use model routing: Claude Haiku for templated responses ($0.003), Claude Sonnet for complex issues ($0.02). Cache common responses in Redis (semantic cache). Never auto-post — draft only. |
+| S3-03 | **Maintainer approval flow** — Dashboard UI for reviewing/editing/approving AI-drafted responses before posting to GitHub | M | Kaushik Reddy | S3-02, S1-06 | One-click approve, inline edit, discard with reason. Show response alongside original issue. Track approval/edit/discard rates as model quality metric. |
+| S3-04 | **Issue quality scorer** — Score each issue 0-100 on completeness: reproduction steps, environment info, error logs, screenshots, expected vs. actual | M | Fardeen | S2-01 | Use a checklist approach: +20 for repro steps, +15 for environment, +15 for error logs, +10 for screenshots, +15 for expected/actual, +10 for version info, +15 for clear description. NLP entity extraction to detect presence. |
+| S3-05 | **Skill profile builder (backend)** — GitHub GraphQL queries to extract: languages used (weighted by LOC), repos contributed to, PR complexity, review activity. Map to 3-level skill taxonomy. | L | Fardeen | S1-02 | Use `contributionsCollection` for efficient data pull. Hierarchical taxonomy: Domain → Technology → Specific (e.g., Backend → Python → FastAPI). Refresh profiles weekly via batch job. |
+| S3-06 | **Skill profile builder (frontend)** — Auto-generated profile with editable skills, interests selector, experience level self-declaration. Public profile page (opt-in). | M | Kishore Reddy | S3-05, S1-06 | Show inferred skills with confidence. Let contributor override. Skill chips with proficiency levels. Clean, resume-linkable public profile URL. |
+| S3-07 | **Tone configuration** — Support 3 response tones (formal/friendly/minimal) per `.contribhub.yml`. Include 3-5 few-shot examples per tone in LLM prompt. | S | Kaushik Reddy | S3-02, S2-06 | Curate example responses for each tone from real OSS projects. Use system prompt for tone control + few-shot examples in user prompt. |
+| S3-08 | **Cost tracking dashboard** — Internal dashboard showing LLM API costs per repo, per day, per operation (classify/embed/draft). Alert if daily cost exceeds threshold. | S | Harshavardhan Reddy | S3-02 | Log token usage per API call. Aggregate in PostgreSQL. Alert via Slack webhook if daily cost >$50. Display in admin dashboard. |
 
 **Sprint 3 Deliverable:** Maintainers see AI-drafted responses they can approve with one click. Contributors can sign up and see their auto-generated skill profile.
 
@@ -298,14 +284,14 @@ main (always deployable)
 
 | Task ID | Task | Size | Assignee | Dependencies | Best Practice |
 |---|---|---|---|---|---|
-| S4-01 | **Project health scorer** — CHAOSS-inspired scoring: commit frequency (0.18), community engagement (0.18), code quality (0.15), documentation (0.15), responsiveness (0.12), sustainability (0.12), security (0.10) | L | Rajan P. | S1-02 | Normalize within language/size cohort (percentile ranking). Update daily via batch job. Filter out repos scoring <30 from matching pool. Bus factor via DOA algorithm. |
-| S4-02 | **Matching algorithm v1** — Composite score: skill match (40%) × project health (25%) × interest alignment (20%) × growth stretch (15%). Rank top 10 issues per contributor. | L | Meera S. | S3-05, S4-01, S2-02 | Content-based matching first (no collab filtering data yet). Pre-compute contributor embeddings nightly. Query pgvector ANN for candidate generation, then re-rank with cross-features. Exclude: dormant repos, claimed issues, issues with open PRs. |
-| S4-03 | **Recommendation feed (frontend)** — Issue cards: project name, health score (dots), difficulty (bar), estimated time, prerequisite skills, maintainer response time | L | Neha R. | S4-02 | Server Component for initial load, TanStack Query for pagination/refresh. Skeleton loading states. Each card links to GitHub issue. "I'll take this" button logs match acceptance. |
-| S4-04 | **Feedback loop (backend + frontend)** — Thumbs up/down on recommendations. Dismissal reasons: "Too hard", "Too easy", "Not interested", "Already taken". Persist for model retraining. | M | Neha R. | S4-03 | Implicit signal: card viewed (weakest). Explicit: thumbs up/down (strong). Log all feedback events to BullMQ → PostgreSQL. Retrain matching weights weekly with feedback data. |
-| S4-05 | **Dormant repo filter** — Multi-signal detection: commit decay curve, issue response time >30 days for 3+ months, `isArchived` flag, top contributors inactive >6 months | M | Rajan P. | S4-01 | Don't rely on last commit alone — mature/stable repos have low activity without being dead. Cross-reference with download metrics (npm, PyPI) if available. |
-| S4-06 | **Claimed issue detection** — Check for existing open PRs referencing an issue. Parse PR body/title for issue number patterns (#123, "fixes #123", "closes #123"). | S | Vikram D. | S1-04 | Use GitHub's timeline API to detect linked PRs. Cache PR↔issue mapping. Update on `pull_request` webhook events. |
-| S4-07 | **Health score display** — Add health indicators to all issue recommendations and project pages. Transparent scoring methodology page. | M | Neha R. | S4-01, S4-03 | Show breakdown on hover/click (commit frequency: A, responsiveness: B, docs: C). Link to "How We Score Projects" docs page. |
-| S4-08 | **Rate limiter** — Token bucket rate limiting for all API endpoints. Tiered limits: free (100/hr), pro (1,000/hr), enterprise (10,000/hr). `X-RateLimit-*` headers. | M | Karthik M. | S1-09 | Redis-based sliding window counter. Return 429 with `Retry-After` header. Log rate limit events. Proactive notification at 75% threshold. |
+| S4-01 | **Project health scorer** — CHAOSS-inspired scoring: commit frequency (0.18), community engagement (0.18), code quality (0.15), documentation (0.15), responsiveness (0.12), sustainability (0.12), security (0.10) | L | Fardeen | S1-02 | Normalize within language/size cohort (percentile ranking). Update daily via batch job. Filter out repos scoring <30 from matching pool. Bus factor via DOA algorithm. |
+| S4-02 | **Matching algorithm v1** — Composite score: skill match (40%) × project health (25%) × interest alignment (20%) × growth stretch (15%). Rank top 10 issues per contributor. | L | Kaushik Reddy | S3-05, S4-01, S2-02 | Content-based matching first (no collab filtering data yet). Pre-compute contributor embeddings nightly. Query pgvector ANN for candidate generation, then re-rank with cross-features. Exclude: dormant repos, claimed issues, issues with open PRs. |
+| S4-03 | **Recommendation feed (frontend)** — Issue cards: project name, health score (dots), difficulty (bar), estimated time, prerequisite skills, maintainer response time | L | Kishore Reddy | S4-02 | Server Component for initial load, TanStack Query for pagination/refresh. Skeleton loading states. Each card links to GitHub issue. "I'll take this" button logs match acceptance. |
+| S4-04 | **Feedback loop (backend + frontend)** — Thumbs up/down on recommendations. Dismissal reasons: "Too hard", "Too easy", "Not interested", "Already taken". Persist for model retraining. | M | Kishore Reddy | S4-03 | Implicit signal: card viewed (weakest). Explicit: thumbs up/down (strong). Log all feedback events to BullMQ → PostgreSQL. Retrain matching weights weekly with feedback data. |
+| S4-05 | **Dormant repo filter** — Multi-signal detection: commit decay curve, issue response time >30 days for 3+ months, `isArchived` flag, top contributors inactive >6 months | M | Fardeen | S4-01 | Don't rely on last commit alone — mature/stable repos have low activity without being dead. Cross-reference with download metrics (npm, PyPI) if available. |
+| S4-06 | **Claimed issue detection** — Check for existing open PRs referencing an issue. Parse PR body/title for issue number patterns (#123, "fixes #123", "closes #123"). | S | Kaushik Reddy | S1-04 | Use GitHub's timeline API to detect linked PRs. Cache PR↔issue mapping. Update on `pull_request` webhook events. |
+| S4-07 | **Health score display** — Add health indicators to all issue recommendations and project pages. Transparent scoring methodology page. | M | Kishore Reddy | S4-01, S4-03 | Show breakdown on hover/click (commit frequency: A, responsiveness: B, docs: C). Link to "How We Score Projects" docs page. |
+| S4-08 | **Rate limiter** — Token bucket rate limiting for all API endpoints. Tiered limits: free (100/hr), pro (1,000/hr), enterprise (10,000/hr). `X-RateLimit-*` headers. | M | Harshavardhan Reddy | S1-09 | Redis-based sliding window counter. Return 429 with `Retry-After` header. Log rate limit events. Proactive notification at 75% threshold. |
 
 **Sprint 4 Deliverable:** Contributors see personalized recommendations with health-scored projects. The matching engine is live and learning from feedback.
 
@@ -317,15 +303,15 @@ main (always deployable)
 
 | Task ID | Task | Size | Assignee | Dependencies | Best Practice |
 |---|---|---|---|---|---|
-| S5-01 | **Triage dashboard** — Charts: issue volume trends, category breakdown, MTTR, MTTFR, AI accuracy over time, top contributors, backlog burndown | L | Vikram D. | S2-05, S1-06 | shadcn/ui charts (Recharts). Server Components for data fetch, Client Components for interactive charts. Date range picker. Export to CSV. |
-| S5-02 | **Weekly email digest** — Automated email to maintainers: new issues, resolved, avg response time, AI accuracy stats, top contributor shoutouts | M | Karthik M. | S5-01 | Use SendGrid or AWS SES. Batch job (Dramatiq scheduled task) every Monday. Unsubscribe link per CAN-SPAM. Plain HTML email (no heavy frameworks). |
-| S5-03 | **Model retraining pipeline** — Weekly automated pipeline: collect maintainer corrections → merge into training set → fine-tune DeBERTa-v3 → evaluate on golden set → deploy if better | L | Meera S. | S2-01, S2-07 | Active learning: prioritize issues where maintainer corrected the AI. SetFit → DeBERTa-v3 transition when dataset >1,000 issues per repo. Canary rollout: 10% traffic → 50% → 100%. |
-| S5-04 | **Drift monitoring** — Evidently AI dashboard tracking input distribution drift (Jensen-Shannon divergence on embeddings) and concept drift (accuracy degradation over time) | M | Rajan P. | S5-03 | Alert on drift exceeding threshold. Trigger retraining. Track maintainer override rate as primary quality signal. |
-| S5-05 | **Guided onboarding brief** — When contributor selects an issue, generate a contribution brief: relevant files (GitHub links), key functions, related tests, setup instructions, suggested approach | L | Neha R. | S4-02 | Use LLM with repo context (RAG). Extract from CONTRIBUTING.md + Dockerfile + CI config. Generate within 60 seconds. Clean reading view. |
-| S5-06 | **Contributor growth tracking** — Visualization: skills gained over time, issues completed, difficulty progression. Personal growth dashboard (not competitive leaderboard). | M | Neha R. | S3-06, S4-04 | Line chart of difficulty level over time. Skill radar chart. "Next milestone" suggestion. Opt-in public profile. No leaderboards — growth is personal. |
-| S5-07 | **Notification preferences** — Per-channel (email, GitHub, in-app), per-event-type toggles. Batch vs. immediate. One-click unsubscribe. | M | Vikram D. | S5-02 | Store preferences in PostgreSQL. Check before sending any notification. GDPR: default all notifications to off, let user opt in. |
-| S5-08 | **API documentation** — Auto-generated OpenAPI docs (FastAPI), interactive Swagger UI at `/docs`, getting started guide, webhook event reference | M | Karthik M. | All API work | Use Pydantic models as response schemas. Add descriptions, summaries, tags to all routes. ReDoc at `/redoc`. Versioned at `/api/v1/`. |
-| S5-09 | **Security audit** — HMAC verification review, token encryption at rest (AES-256-GCM), CSRF protection, Content-Security-Policy headers, dependency audit (`npm audit`, `safety check`) | M | Aravind K. | All | Never store tokens in plaintext. Use `crypto.timingSafeEqual` for signature verification. Rotate webhook secrets every 90 days. Run gitleaks in CI. |
+| S5-01 | **Triage dashboard** — Charts: issue volume trends, category breakdown, MTTR, MTTFR, AI accuracy over time, top contributors, backlog burndown | L | Kaushik Reddy | S2-05, S1-06 | shadcn/ui charts (Recharts). Server Components for data fetch, Client Components for interactive charts. Date range picker. Export to CSV. |
+| S5-02 | **Weekly email digest** — Automated email to maintainers: new issues, resolved, avg response time, AI accuracy stats, top contributor shoutouts | M | Harshavardhan Reddy | S5-01 | Use SendGrid or AWS SES. Batch job (Dramatiq scheduled task) every Monday. Unsubscribe link per CAN-SPAM. Plain HTML email (no heavy frameworks). |
+| S5-03 | **Model retraining pipeline** — Weekly automated pipeline: collect maintainer corrections → merge into training set → fine-tune DeBERTa-v3 → evaluate on golden set → deploy if better | L | Kaushik Reddy | S2-01, S2-07 | Active learning: prioritize issues where maintainer corrected the AI. SetFit → DeBERTa-v3 transition when dataset >1,000 issues per repo. Canary rollout: 10% traffic → 50% → 100%. |
+| S5-04 | **Drift monitoring** — Evidently AI dashboard tracking input distribution drift (Jensen-Shannon divergence on embeddings) and concept drift (accuracy degradation over time) | M | Fardeen | S5-03 | Alert on drift exceeding threshold. Trigger retraining. Track maintainer override rate as primary quality signal. |
+| S5-05 | **Guided onboarding brief** — When contributor selects an issue, generate a contribution brief: relevant files (GitHub links), key functions, related tests, setup instructions, suggested approach | L | Kishore Reddy | S4-02 | Use LLM with repo context (RAG). Extract from CONTRIBUTING.md + Dockerfile + CI config. Generate within 60 seconds. Clean reading view. |
+| S5-06 | **Contributor growth tracking** — Visualization: skills gained over time, issues completed, difficulty progression. Personal growth dashboard (not competitive leaderboard). | M | Kishore Reddy | S3-06, S4-04 | Line chart of difficulty level over time. Skill radar chart. "Next milestone" suggestion. Opt-in public profile. No leaderboards — growth is personal. |
+| S5-07 | **Notification preferences** — Per-channel (email, GitHub, in-app), per-event-type toggles. Batch vs. immediate. One-click unsubscribe. | M | Kaushik Reddy | S5-02 | Store preferences in PostgreSQL. Check before sending any notification. GDPR: default all notifications to off, let user opt in. |
+| S5-08 | **API documentation** — Auto-generated OpenAPI docs (FastAPI), interactive Swagger UI at `/docs`, getting started guide, webhook event reference | M | Harshavardhan Reddy | All API work | Use Pydantic models as response schemas. Add descriptions, summaries, tags to all routes. ReDoc at `/redoc`. Versioned at `/api/v1/`. |
+| S5-09 | **Security audit** — HMAC verification review, token encryption at rest (AES-256-GCM), CSRF protection, Content-Security-Policy headers, dependency audit (`npm audit`, `safety check`) | M | Joel | All | Never store tokens in plaintext. Use `crypto.timingSafeEqual` for signature verification. Rotate webhook secrets every 90 days. Run gitleaks in CI. |
 
 **Sprint 5 Deliverable:** Full maintainer dashboard with analytics. Contributor experience with guided onboarding. Security audit passed.
 
@@ -337,14 +323,14 @@ main (always deployable)
 
 | Task ID | Task | Size | Assignee | Dependencies | Best Practice |
 |---|---|---|---|---|---|
-| S6-01 | **Load testing** — Simulate 1,000 concurrent webhook events, 500 simultaneous dashboard users, 10,000 matching queries/hour | M | Karthik M. | All | Use k6 or Artillery. Test webhook processing latency under load. Identify bottlenecks. Auto-scaling rules for Railway workers. |
-| S6-02 | **GitHub Marketplace listing** — Logo, feature card, screenshots, description, pricing plans, installation flow, privacy policy, terms of service | M | Vikram D. | All | GitHub requires 100 installs before paid plans. Start free. Clear screenshots showing value (before/after triage). Privacy policy covering data usage. |
-| S6-03 | **Onboarding flow optimization** — Measure drop-off at each step (install → configure → first triage → dashboard visit). Fix highest drop-off points. | M | Neha R. | S6-02 | PostHog funnel analysis. Target: 80% completion from install to first auto-labeled issue. Reduce steps. Add progress indicator. |
-| S6-04 | **Beta outreach campaign** — Identify 50 target repos (10K+ stars, active maintainers, high issue volume). Personalized outreach via Twitter/email showing their specific triage burden. | L | Kaushik + Aravind | S6-02 | Show them: "Your repo got 847 issues in the last 90 days. 312 were missing reproduction steps. ContribHub auto-requests these." Personalized pitch > generic launch post. |
-| S6-05 | **Error handling hardening** — Graceful degradation: if LLM API down, queue and retry; if GitHub API rate limited, backoff; if classifier confidence <50%, skip auto-label and notify maintainer | M | Meera S. + Karthik M. | All | Circuit breaker pattern. Fallback responses. Never fail silently. Alert team on persistent failures. Status page at status.contribhub.dev. |
-| S6-06 | **Model fine-tuning on beta data** — Use real issues from beta repos to fine-tune classifier. Collect maintainer corrections. Retrain and deploy improved model. | L | Meera S. + Rajan P. | S5-03 | Per-repo fine-tuning if repo has >200 labeled issues. Otherwise use aggregate model. A/B test fine-tuned vs. base model. |
-| S6-07 | **Documentation site** — Landing page, features overview, getting started guide, API reference, FAQ, pricing page | L | Vikram D. + Neha R. | All | Minimal marketing site. Focus on developer trust: open-source triage action, transparent AI reasoning, privacy-first design. |
-| S6-08 | **Backup & disaster recovery** — PostgreSQL automated backups (daily), Redis persistence, webhook replay capability, infrastructure recovery runbook | M | Karthik M. | All | Railway automated backups. Test restore procedure. Document recovery steps. RTO target: <1 hour. RPO target: <24 hours. |
+| S6-01 | **Load testing** — Simulate 1,000 concurrent webhook events, 500 simultaneous dashboard users, 10,000 matching queries/hour | M | Harshavardhan Reddy | All | Use k6 or Artillery. Test webhook processing latency under load. Identify bottlenecks. Auto-scaling rules for Railway workers. |
+| S6-02 | **GitHub Marketplace listing** — Logo, feature card, screenshots, description, pricing plans, installation flow, privacy policy, terms of service | M | Kaushik Reddy | All | GitHub requires 100 installs before paid plans. Start free. Clear screenshots showing value (before/after triage). Privacy policy covering data usage. |
+| S6-03 | **Onboarding flow optimization** — Measure drop-off at each step (install → configure → first triage → dashboard visit). Fix highest drop-off points. | M | Kishore Reddy | S6-02 | PostHog funnel analysis. Target: 80% completion from install to first auto-labeled issue. Reduce steps. Add progress indicator. |
+| S6-04 | **Beta outreach campaign** — Identify 50 target repos (10K+ stars, active maintainers, high issue volume). Personalized outreach via Twitter/email showing their specific triage burden. | L | Kaushik + Joel | S6-02 | Show them: "Your repo got 847 issues in the last 90 days. 312 were missing reproduction steps. ContribHub auto-requests these." Personalized pitch > generic launch post. |
+| S6-05 | **Error handling hardening** — Graceful degradation: if LLM API down, queue and retry; if GitHub API rate limited, backoff; if classifier confidence <50%, skip auto-label and notify maintainer | M | Kaushik Reddy + Harshavardhan Reddy | All | Circuit breaker pattern. Fallback responses. Never fail silently. Alert team on persistent failures. Status page at status.contribhub.dev. |
+| S6-06 | **Model fine-tuning on beta data** — Use real issues from beta repos to fine-tune classifier. Collect maintainer corrections. Retrain and deploy improved model. | L | Kaushik Reddy + Fardeen | S5-03 | Per-repo fine-tuning if repo has >200 labeled issues. Otherwise use aggregate model. A/B test fine-tuned vs. base model. |
+| S6-07 | **Documentation site** — Landing page, features overview, getting started guide, API reference, FAQ, pricing page | L | Kaushik Reddy + Kishore Reddy | All | Minimal marketing site. Focus on developer trust: open-source triage action, transparent AI reasoning, privacy-first design. |
+| S6-08 | **Backup & disaster recovery** — PostgreSQL automated backups (daily), Redis persistence, webhook replay capability, infrastructure recovery runbook | M | Harshavardhan Reddy | All | Railway automated backups. Test restore procedure. Document recovery steps. RTO target: <1 hour. RPO target: <24 hours. |
 
 **Sprint 6 Deliverable:** ContribHub is live on GitHub Marketplace. 50 beta repos installed. System handles real-world load. Public launch announcement.
 
@@ -352,7 +338,7 @@ main (always deployable)
 
 ## 4. Best Practices by Domain
 
-### 4.1 AI/ML Pipeline (Meera S. & Rajan P.)
+### 4.1 AI/ML Pipeline (Kaushik Reddy & Fardeen)
 
 #### Issue Classification
 
@@ -383,7 +369,7 @@ main (always deployable)
 | **Caching** | Redis semantic cache | Cache embeddings of common issue patterns + responses. 73% cost reduction with cache hits. |
 | **Safety** | Never auto-post | All drafts require maintainer approval. Log accept/edit/discard for quality tracking. |
 
-### 4.2 Full-Stack Application (Vikram D. & Neha R.)
+### 4.2 Full-Stack Application (Kaushik Reddy & Kishore Reddy)
 
 #### Frontend Architecture
 
@@ -404,7 +390,7 @@ Server Component (data fetch, no JS shipped)
             └── TanStack Query (cache, refetch, optimistic updates)
 ```
 
-### 4.3 Backend & Infrastructure (Karthik M.)
+### 4.3 Backend & Infrastructure (Harshavardhan Reddy)
 
 #### API Architecture
 
@@ -444,10 +430,10 @@ Server Component (data fetch, no JS shipped)
 ### PR Requirements
 
 - 1 approval from designated reviewer (domain-specific):
-  - ML code → Meera S. approves
-  - Frontend → Vikram D. or Neha R. cross-review
-  - Backend/infra → Karthik M. or Aravind K. approves
-  - Schema changes → Aravind K. approves
+  - ML code → Kaushik Reddy approves
+  - Frontend → Kaushik Reddy or Kishore Reddy cross-review
+  - Backend/infra → Harshavardhan Reddy or Joel approves
+  - Schema changes → Joel approves
 - All CI checks green
 - No `TODO` without a linked GitHub issue
 - Test coverage: >80% for new code (not enforced globally during MVP)
@@ -532,15 +518,14 @@ test(ml): add golden set evaluation for issue classifier
 
 ### Team Compensation Budget (if hiring)
 
-| Role | Type | Monthly Cost |
-|---|---|---|
-| CTO / Tech Lead | Co-founder (equity-heavy) | $8K-12K + 5-10% equity |
-| Head of AI/ML | Full-time or contract | $15K-20K + 0.5-1% equity |
-| Sr. Full-Stack #1 | Full-time or contract | $12K-18K + 0.25-0.5% equity |
-| Sr. Full-Stack #2 | Full-time or contract | $12K-18K + 0.25-0.5% equity |
-| Sr. Backend/Infra | Full-time or contract | $12K-18K + 0.25-0.5% equity |
-| ML Engineer | Full-time or contract | $10K-15K + 0.1-0.25% equity |
-| **Total (6 engineers)** | | **$69K-101K/mo** |
+| Role | Name | Type | Monthly Cost |
+|---|---|---|---|
+| CTO / Tech Lead | Joel | Co-founder (equity-heavy) | $8K-12K + 5-10% equity |
+| Head of AI/ML & Sr. Full-Stack | Kaushik Reddy | Full-time (dual role) | $18K-25K + 1-2% equity |
+| Sr. Backend/Infra | Harshavardhan Reddy | Full-time or contract | $12K-18K + 0.25-0.5% equity |
+| ML Engineer | Fardeen | Full-time or contract | $10K-15K + 0.1-0.25% equity |
+| Sr. Full-Stack (Matching) | Kishore Reddy | Full-time or contract | $12K-18K + 0.25-0.5% equity |
+| **Total (5 engineers)** | | | **$60K-88K/mo** |
 
 *Note: Ranges reflect US remote rates. India-based engineers reduce costs by 40-60% with comparable skill levels.*
 
