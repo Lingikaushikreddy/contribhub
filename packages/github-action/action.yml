@@ -1,0 +1,25 @@
+name: 'ContribHub Triage'
+description: 'AI-powered issue triage, duplicate detection, and response drafting'
+author: 'ContribHub'
+branding:
+  icon: 'git-pull-request'
+  color: 'purple'
+inputs:
+  contribhub_api_key:
+    description: 'Your ContribHub API key'
+    required: true
+  config_path:
+    description: 'Path to .contribhub.yml config file'
+    required: false
+    default: '.contribhub.yml'
+  api_base_url:
+    description: 'ContribHub API base URL (override for self-hosted)'
+    required: false
+    default: 'https://api.contribhub.dev'
+  dry_run:
+    description: 'Run without applying labels or posting comments'
+    required: false
+    default: 'false'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
