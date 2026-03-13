@@ -5,6 +5,7 @@ Provides mock GitHub API responses, test database setup/teardown, mock Redis,
 and sample issue payloads for all test scenarios.
 """
 
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Generator
@@ -24,18 +25,22 @@ from app.models.base import Base
 # Settings Override
 # ---------------------------------------------------------------------------
 
-TEST_DATABASE_URL = "sqlite+aiosqlite:///file::memory:?cache=shared&uri=true"
+# Use PostgreSQL from env (CI) or fall back to SQLite for local dev
+TEST_DATABASE_URL = os.environ.get(
+    "DATABASE_URL",
+    "sqlite+aiosqlite:///file::memory:?cache=shared&uri=true",
+)
 
 
 def get_test_settings() -> Settings:
     """Return settings configured for the test environment."""
     return Settings(
         DATABASE_URL=TEST_DATABASE_URL,
-        REDIS_URL="redis://localhost:6379/15",
-        GITHUB_APP_ID="test-app-id",
-        GITHUB_PRIVATE_KEY="test-private-key",
-        GITHUB_WEBHOOK_SECRET="test-webhook-secret",
-        JWT_SECRET_KEY="test-jwt-secret",
+        REDIS_URL=os.environ.get("REDIS_URL", "redis://localhost:6379/15"),
+        GITHUB_APP_ID=os.environ.get("GITHUB_APP_ID", "test-app-id"),
+        GITHUB_PRIVATE_KEY=os.environ.get("GITHUB_PRIVATE_KEY", "test-private-key"),
+        GITHUB_WEBHOOK_SECRET=os.environ.get("GITHUB_WEBHOOK_SECRET", "test-webhook-secret"),
+        JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY", "test-jwt-secret"),
         ENVIRONMENT="test",
         DEBUG=True,
     )
@@ -47,11 +52,15 @@ def get_test_settings() -> Settings:
 
 @pytest_asyncio.fixture(scope="function")
 async def db_engine():
-    """Create an async SQLite engine for tests, with tables created and dropped each test."""
+    """Create an async engine for tests, with tables created and dropped each test."""
+    connect_args = {}
+    if TEST_DATABASE_URL.startswith("sqlite"):
+        connect_args["check_same_thread"] = False
+
     engine = create_async_engine(
         TEST_DATABASE_URL,
         echo=False,
-        connect_args={"check_same_thread": False},
+        **( {"connect_args": connect_args} if connect_args else {}),
     )
 
     async with engine.begin() as conn:

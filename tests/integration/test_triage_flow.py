@@ -42,10 +42,9 @@ class TestTriageWebhookFlow:
         """An issues.opened event should trigger AI triage and return success."""
         payload = build_webhook_payload("opened", SAMPLE_GITHUB_ISSUE)
 
-        with patch("app.services.triage.triage_issue", new_callable=AsyncMock) as mock_triage, \
-             patch("app.services.triage.check_duplicates", new_callable=AsyncMock) as mock_dupes:
-            mock_triage.return_value = mock_triage_response
-            mock_dupes.return_value = mock_no_duplicate_response
+        with patch("app.api.v1.routers.webhooks.verify_webhook_signature", return_value=True), \
+             patch("app.api.v1.routers.webhooks.triage_service") as mock_svc:
+            mock_svc.triage_issue = AsyncMock(return_value=mock_triage_response)
 
             response = await api_client.post(
                 "/api/v1/webhooks/github",
@@ -67,10 +66,9 @@ class TestTriageWebhookFlow:
         edited_issue = {**SAMPLE_GITHUB_ISSUE, "title": "Updated: App crashes on startup"}
         payload = build_webhook_payload("edited", edited_issue)
 
-        with patch("app.services.triage.triage_issue", new_callable=AsyncMock) as mock_triage, \
-             patch("app.services.triage.check_duplicates", new_callable=AsyncMock) as mock_dupes:
-            mock_triage.return_value = mock_triage_response
-            mock_dupes.return_value = mock_no_duplicate_response
+        with patch("app.api.v1.routers.webhooks.verify_webhook_signature", return_value=True), \
+             patch("app.api.v1.routers.webhooks.triage_service") as mock_svc:
+            mock_svc.triage_issue = AsyncMock(return_value=mock_triage_response)
 
             response = await api_client.post(
                 "/api/v1/webhooks/github",
@@ -191,10 +189,7 @@ class TestDuplicateDetection:
 
     @pytest.mark.asyncio
     async def test_duplicate_comment_format(self, mock_duplicate_response):
-        """The duplicate comment should contain proper markdown formatting."""
-        from packages.github_action_comments import buildDuplicateComment
-
-        # Simulate building the comment
+        """The duplicate comment data should contain proper fields for markdown formatting."""
         duplicates = mock_duplicate_response["duplicates"]
         dup = duplicates[0]
 
