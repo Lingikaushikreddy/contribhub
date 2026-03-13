@@ -1,0 +1,132 @@
+name: Deploy Staging
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+jobs:
+  deploy-web:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build web application
+        run: npx turbo run build --filter=@contribhub/web
+        env:
+          NEXT_PUBLIC_API_URL: ${{ vars.STAGING_API_URL }}
+
+      - name: Deploy web to Vercel
+        run: |
+          npm i -g vercel@latest
+          cd apps/web
+          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} \
+            --scope=${{ vars.VERCEL_SCOPE }} \
+            --yes
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+
+  deploy-api:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli@latest
+
+      - name: Deploy API to Railway
+        run: |
+          cd apps/api
+          railway up --service api --environment staging
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+  deploy-worker:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: staging
+    needs: [deploy-api]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli@latest
+
+      - name: Deploy worker to Railway
+        run: |
+          cd apps/api
+          railway up --service worker --environment staging
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+  run-migrations:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: staging
+    needs: [deploy-api]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - run: pip install -r apps/api/requirements.txt
+
+      - name: Run database migrations
+        run: cd apps/api && alembic upgrade head
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+
+  smoke-test:
+    runs-on: ubuntu-latest
+    environment: staging
+    needs: [deploy-web, deploy-api, run-migrations]
+    steps:
+      - name: Health check API
+        run: |
+          for i in {1..10}; do
+            status=$(curl -s -o /dev/null -w "%{http_code}" "${{ vars.STAGING_API_URL }}/api/v1/health" || true)
+            if [ "$status" = "200" ]; then
+              echo "API health check passed"
+              exit 0
+            fi
+            echo "Attempt $i: status=$status, retrying in 10s..."
+            sleep 10
+          done
+          echo "API health check failed after 10 attempts"
+          exit 1
+
+      - name: Health check Web
+        run: |
+          for i in {1..10}; do
+            status=$(curl -s -o /dev/null -w "%{http_code}" "${{ vars.STAGING_WEB_URL }}" || true)
+            if [ "$status" = "200" ]; then
+              echo "Web health check passed"
+              exit 0
+            fi
+            echo "Attempt $i: status=$status, retrying in 10s..."
+            sleep 10
+          done
+          echo "Web health check failed after 10 attempts"
+          exit 1
