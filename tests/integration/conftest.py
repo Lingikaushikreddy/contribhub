@@ -142,7 +142,7 @@ def mock_github_api():
 @pytest_asyncio.fixture()
 async def api_client(db_session, mock_redis):
     """Provide an HTTPX AsyncClient wired to the FastAPI app with test overrides."""
-    from app.core.database import get_db_session
+    from app.core.database import get_db
 
     # Lazy import so the app module isn't loaded at collection time
     try:
@@ -153,7 +153,7 @@ async def api_client(db_session, mock_redis):
         app = FastAPI()
 
     app.dependency_overrides[get_settings] = get_test_settings
-    app.dependency_overrides[get_db_session] = lambda: db_session
+    app.dependency_overrides[get_db] = lambda: db_session
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
