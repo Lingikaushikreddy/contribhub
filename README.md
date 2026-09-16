@@ -11,11 +11,10 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Lingikaushikreddy/contribhub/pulls)
 [![GitHub Stars](https://img.shields.io/github/stars/Lingikaushikreddy/contribhub?style=social)](https://github.com/Lingikaushikreddy/contribhub)
 
-[Live Demo](https://contribhub.dev) &nbsp;&middot;&nbsp; [Documentation](https://docs.contribhub.dev) &nbsp;&middot;&nbsp; [Roadmap](#roadmap) &nbsp;&middot;&nbsp; [Contributing](#contributing)
+[Roadmap](#roadmap) &nbsp;&middot;&nbsp; [Contributing](#contributing)
 
 <br />
 
-<img width="800" alt="ContribHub Dashboard" src="https://github.com/user-attachments/assets/contribhub-hero.png" />
 
 </div>
 
