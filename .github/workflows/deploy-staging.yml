@@ -1,10 +1,15 @@
 name: Deploy Staging
 
+# Manual only until staging exists: the Railway and Vercel secrets are not configured,
+# so running this after every green CI on main just fails. To deploy automatically
+# again, restore:
+#   workflow_run:
+#     workflows: [CI]
+#     types: [completed]
+#     branches: [main]
+# and add `if: github.event.workflow_run.conclusion == 'success'` to deploy-web and deploy-api.
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: deploy-staging
@@ -12,7 +17,6 @@ concurrency:
 
 jobs:
   deploy-web:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -42,7 +46,6 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
 
   deploy-api:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -60,7 +63,6 @@ jobs:
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
 
   deploy-worker:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: staging
     needs: [deploy-api]
@@ -79,7 +81,6 @@ jobs:
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
 
   run-migrations:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: staging
     needs: [deploy-api]
