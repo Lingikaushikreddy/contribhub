@@ -72,8 +72,14 @@ class Issue(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     matches: Mapped[List["Match"]] = relationship(
         "Match", back_populates="issue", cascade="all, delete-orphan", lazy="select"
     )
+    # TriageEvent references issues twice (issue_id and duplicate_of_id), so name the one
+    # this collection follows or SQLAlchemy cannot configure the mappers.
     triage_events: Mapped[List["TriageEvent"]] = relationship(
-        "TriageEvent", back_populates="issue", cascade="all, delete-orphan", lazy="select"
+        "TriageEvent",
+        back_populates="issue",
+        foreign_keys="TriageEvent.issue_id",
+        cascade="all, delete-orphan",
+        lazy="select",
     )
 
     def __repr__(self) -> str:

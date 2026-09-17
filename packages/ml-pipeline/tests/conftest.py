@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
 import pytest
+
+
+def _days_ago(days: int) -> str:
+    """ISO timestamp relative to now, so activity checks don't expire as time passes."""
+    return (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 # ---------------------------------------------------------------------------
@@ -107,7 +114,7 @@ def active_repo_data() -> dict:
     return {
         "commits_last_90d": 250,
         "releases_last_year": 6,
-        "last_commit_date": "2026-03-12T10:00:00Z",
+        "last_commit_date": _days_ago(2),
         "contributors_count": 45,
         "new_contributors_last_90d": 8,
         "stars": 2500,
@@ -154,7 +161,7 @@ def dormant_repo_data() -> dict:
     return {
         "commits_last_90d": 0,
         "releases_last_year": 0,
-        "last_commit_date": "2024-06-01T10:00:00Z",
+        "last_commit_date": _days_ago(470),
         "contributors_count": 2,
         "new_contributors_last_90d": 0,
         "stars": 15,

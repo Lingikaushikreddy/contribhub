@@ -318,17 +318,22 @@ class TestMatchScoreComponents:
         sample_contributor_profile,
     ):
         """Growth match should be higher for issues slightly above current skill level."""
-        python_proficiency = 0.85
+        from types import SimpleNamespace
 
-        # An issue requiring proficiency 0.90 is a good stretch
-        stretch_difficulty = 0.90
-        growth_match = max(0, 1.0 - abs(stretch_difficulty - python_proficiency - 0.10))
-        assert growth_match > 0.5
+        from app.services.matching_service import MatchingService
 
-        # An issue way above skill level (0.99) is not a good match
-        too_hard_difficulty = 0.99
-        growth_match_hard = max(0, 1.0 - abs(too_hard_difficulty - python_proficiency - 0.10))
-        assert growth_match_hard < growth_match
+        service = MatchingService()
+        skills = {"python": 0.5, "fastapi": 0.5}
+
+        def growth(complexity_score: int) -> float:
+            return service._growth_score(skills, SimpleNamespace(complexity_score=complexity_score))
+
+        stretch = growth(7)  # 0.2 above the average skill level
+        too_hard = growth(10)  # 0.5 above
+        too_easy = growth(3)  # below
+
+        assert stretch > too_hard
+        assert stretch > too_easy
 
 
 class TestMatchingEndpoint:
